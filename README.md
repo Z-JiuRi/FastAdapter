@@ -1,9 +1,10 @@
 # FastAdapter CSI Code Release
 
-This directory contains the source code for the FastAdapter pipeline. The
-paper method is the default in the entry points below. Local
-configuration files, datasets, checkpoints, experiment outputs, logs, plots,
+This directory contains the source code for the FastAdapter pipeline. The  
+paper method is the default in the entry points below. Local  
+configuration files, datasets, checkpoints, experiment outputs, logs, plots,  
 and machine-specific paths are intentionally excluded.
+
 ## Repository layout
 
 ```text
@@ -55,31 +56,31 @@ adapter/
 └── param_realign.py             # Backward-compatible alignment entry point
 ```
 
-All commands below use placeholders such as `PATH_TO_TRAIN_PT`. Replace them
-with paths for the local machine. No absolute user path is required by the
+All commands below use placeholders such as `PATH_TO_TRAIN_PT`. Replace them  
+with paths for the local machine. No absolute user path is required by the  
 packaged code.
 
 ## Method scope
 
-The release follows the FastAdapter pipeline represented by the following
+The release follows the FastAdapter pipeline represented by the following  
 source components:
 
-- Seven heterogeneous CSI encoders: `csinet`, `crnet`, `clnet`, `transnet`,
+- Seven heterogeneous CSI encoders: `csinet`, `crnet`, `clnet`, `transnet`,  
   `resnet`, `attention_cnn`, and `mlp_ae`.
-- One fixed `transnet` decoder interface for base reconstruction and downstream
+- One fixed `transnet` decoder interface for base reconstruction and downstream  
   Adapter evaluation.
-- A code-space Adapter initialized by ridge affine alignment and followed by
+- A code-space Adapter initialized by ridge affine alignment and followed by  
   four residual LayerNorm--MLP blocks.
-- A compact 26-tensor Adapter state: affine weight/bias plus six tensors for
+- A compact 26-tensor Adapter state: affine weight/bias plus six tensors for  
   each of four residual blocks.
 - ParamRealign hidden-neuron permutation alignment before parameter modeling.
-- Per-task Gram--Raw conditions, parameter tokenization, task-level contrastive
-  context alignment, epsilon-prediction diffusion, classifier-free guidance,
+- Per-task Gram--Raw conditions, parameter tokenization, task-level contrastive  
+  context alignment, epsilon-prediction diffusion, classifier-free guidance,  
   and DDIM sampling.
 
-The original Adapter source contains reusable training diagnostics and loss
-switches. For the paper path, use the explicit arguments shown below:
-`affine_residual_mlp`, four blocks, hidden size 512, residual scale 0.4,
+The original Adapter source contains reusable training diagnostics and loss  
+switches. For the paper path, use the explicit arguments shown below:  
+`affine_residual_mlp`, four blocks, hidden size 512, residual scale 0.4,  
 no final gate, and epsilon prediction in diffusion.
 
 ## Requirements
@@ -96,41 +97,41 @@ thop
 omegaconf
 ```
 
-`mamba_ssm` is optional and is required only when an existing diffusion
-configuration selects the Mamba context implementation. The Transformer and
+`mamba_ssm` is optional and is required only when an existing diffusion  
+configuration selects the Mamba context implementation. The Transformer and  
 GRU context implementations do not require it.
 
 ## Shell scripts
 
-The `scripts/` directory provides portable wrappers for the complete pipeline.
-They contain no dataset paths, checkpoints, usernames, or local configuration
-defaults. Supply paths through environment variables. Any arguments appended
-to a script command are forwarded to its Python entry point, except for
+The `scripts/` directory provides portable wrappers for the complete pipeline.  
+They contain no dataset paths, checkpoints, usernames, or local configuration  
+defaults. Supply paths through environment variables. Any arguments appended  
+to a script command are forwarded to its Python entry point, except for  
 `build_diffusion_inputs.sh`, which runs two fixed preparation commands.
 
 Available scripts:
 
-- `base_train.sh`: train one of the seven base encoders with the TransNet
+- `base_train.sh`: train one of the seven base encoders with the TransNet  
   decoder and export all codeword splits.
-- `base_evaluate.sh`: evaluate a complete base checkpoint and export its
+- `base_evaluate.sh`: evaluate a complete base checkpoint and export its  
   codewords.
 - `refine_codes.sh`: generate frozen-decoder refined code targets.
-- `train_adapter.sh`: run the paper Adapter path with the fixed 26-tensor
+- `train_adapter.sh`: run the paper Adapter path with the fixed 26-tensor  
   architecture arguments.
 - `strip_adapters.sh`: validate or compact full EMA Adapter checkpoints.
 - `align_adapters.sh`: run ParamRealign and optionally save aligned states.
-- `build_diffusion_inputs.sh`: build per-task Gram--Raw tensors and
+- `build_diffusion_inputs.sh`: build per-task Gram--Raw tensors and  
   training-only Adapter statistics.
 - `train_context_alignment.sh`: train the contrastive context alignment model.
 - `train_diffusion.sh`: run single-process diffusion training.
-- `train_diffusion_distributed.sh`: run multi-GPU diffusion training through
+- `train_diffusion_distributed.sh`: run multi-GPU diffusion training through  
   `torchrun`.
 - `infer_diffusion.sh`: generate compact Adapter parameters.
-- `evaluate_diffusion.sh`: generate and evaluate Adapters with the frozen base
+- `evaluate_diffusion.sh`: generate and evaluate Adapters with the frozen base  
   decoder.
 - `common.sh`: shared path resolution and required-variable validation.
 
-All scripts use `python3` by default. Set `PYTHON_BIN` to select another Python
+All scripts use `python3` by default. Set `PYTHON_BIN` to select another Python  
 executable. Base and Adapter scripts accept `GPU=<id>` or `CPU=1`.
 
 Example base run:
@@ -165,7 +166,7 @@ GPU=0 \
 bash scripts/train_adapter.sh
 ```
 
-`strip_adapters.sh` defaults to the safe dry-run mode. Set `DRY_RUN=0` only
+`strip_adapters.sh` defaults to the safe dry-run mode. Set `DRY_RUN=0` only  
 after reviewing the validation output:
 
 ```bash
@@ -187,9 +188,9 @@ OUTPUT_DIR=PATH_TO_DIFFUSION_OUTPUT \
 bash scripts/train_diffusion.sh
 ```
 
-The CSI tensors are expected to be floating-point PyTorch files. The default
-single-sample shape is `(2, 32, 32)`. A two-dimensional tensor is reshaped to
-that sample shape by the base data loader. With compression ratio denominator
+The CSI tensors are expected to be floating-point PyTorch files. The default  
+single-sample shape is `(2, 32, 32)`. A two-dimensional tensor is reshaped to  
+that sample shape by the base data loader. With compression ratio denominator  
 `cr`, the code dimension is:
 
 ```text
@@ -206,8 +207,8 @@ The `base/` folder is the plain end-to-end path only:
 CSI -> selected encoder -> codeword -> TransNet decoder -> reconstructed CSI
 ```
 
-It does not include an Adapter module, partial encoder/decoder loading,
-teacher-code distillation, or code regularization. Training uses reconstruction
+It does not include an Adapter module, partial encoder/decoder loading,  
+teacher-code distillation, or code regularization. Training uses reconstruction  
 MSE. Evaluation reports aggregate NMSE:
 
 ```text
@@ -241,10 +242,10 @@ python3 main.py \
   --gpu 0
 ```
 
-Replace `transnet` with any of the seven encoder names listed above to train
-the heterogeneous base models against the same decoder architecture. Each run
-writes checkpoints and exported training codewords below its runtime
-`exps/<exp_name>/` directory. These generated files are not part of this
+Replace `transnet` with any of the seven encoder names listed above to train  
+the heterogeneous base models against the same decoder architecture. Each run  
+writes checkpoints and exported training codewords below its runtime  
+`exps/<exp_name>/` directory. These generated files are not part of this  
 source-only release.
 
 Evaluate a complete base checkpoint:
@@ -275,9 +276,9 @@ Important files:
 
 ## 2. Target-code refinement
 
-The Adapter stage consumes codewords from a source encoder and a target model.
-The optional refinement script preserves the original offline optimization
-flow: initialize a target-space code, optimize it through the frozen target
+The Adapter stage consumes codewords from a source encoder and a target model.  
+The optional refinement script preserves the original offline optimization  
+flow: initialize a target-space code, optimize it through the frozen target  
 decoder, and save refined code targets for Adapter supervision.
 
 Run from `codes`:
@@ -301,21 +302,21 @@ python3 adapter/scripts/generate_latent_refined_codes.py \
   --gpu 0
 ```
 
-The source and target experiment directories must contain the base runtime
-layout used by `base/main.py`, including `args.json`,
-`checkpoints/best_nmse.pth`, and split codewords. The refinement output contains
-`train_refined_code.pt`, `val_refined_code.pt`, and
+The source and target experiment directories must contain the base runtime  
+layout used by `base/main.py`, including `args.json`,  
+`checkpoints/best_nmse.pth`, and split codewords. The refinement output contains  
+`train_refined_code.pt`, `val_refined_code.pt`, and  
 `test_refined_code.pt` when all splits are selected.
 
 ## 3. Adapter training
 
-`adapter/train_adapter.py` is the stable standalone entry point and delegates
-to the structured `adapter/training/` package. The package loads precomputed
-source and target codewords, fits the affine start, freezes the selected
-decoder, trains the mapper, evaluates CSI reconstruction, and can export mapped
+`adapter/train_adapter.py` is the stable standalone entry point and delegates  
+to the structured `adapter/training/` package. The package loads precomputed  
+source and target codewords, fits the affine start, freezes the selected  
+decoder, trains the mapper, evaluates CSI reconstruction, and can export mapped  
 codewords.
 
-For the 26-tensor paper Adapter, run from `codes` with the method-defining
+For the 26-tensor paper Adapter, run from `codes` with the method-defining  
 arguments shown explicitly:
 
 ```bash
@@ -360,29 +361,29 @@ python3 adapter/train_adapter.py \
   --gpu 0
 ```
 
-The refined training tensor supplies the codeword-alignment target. The
-reference encoder checkpoint supplies the re-encoding loss. Keep
+The refined training tensor supplies the codeword-alignment target. The  
+reference encoder checkpoint supplies the re-encoding loss. Keep  
 `--affine_fit_splits train`; the `train_val_test` option is an oracle diagnostic.
 
 Important files:
 
-- `adapter/models/paper.py`: the original `AffineResidualMLPMapper`; the paper
+- `adapter/models/paper.py`: the original `AffineResidualMLPMapper`; the paper  
   path selects it through `affine_residual_mlp`.
 - `adapter/models/factory.py`: preserves mapper construction compatibility.
-- `adapter/training/pipeline.py`: complete fitting, optimization, evaluation,
+- `adapter/training/pipeline.py`: complete fitting, optimization, evaluation,  
   EMA, checkpoint, and export orchestration.
 - `adapter/training/engine.py`: train/evaluate epochs and codeword export.
-- `adapter/train_adapter.py`: compatibility entry point; existing commands are
+- `adapter/train_adapter.py`: compatibility entry point; existing commands are  
   unchanged.
-- `adapter/scripts/generate_latent_refined_codes.py`: frozen-decoder target-code
+- `adapter/scripts/generate_latent_refined_codes.py`: frozen-decoder target-code  
   refinement.
-- `adapter/functional.py`: differentiable functional execution of compact
+- `adapter/functional.py`: differentiable functional execution of compact  
   Adapter states.
 
-Before ParamRealign or diffusion tokenization, convert the selected EMA
-checkpoint to the compact 26-tensor state. The existing conversion utility
-performs an atomic in-place replacement, so first place the selected best
-checkpoint at each task's `adapter.pth` path and retain a backup outside the
+Before ParamRealign or diffusion tokenization, convert the selected EMA  
+checkpoint to the compact 26-tensor state. The existing conversion utility  
+performs an atomic in-place replacement, so first place the selected best  
+checkpoint at each task's `adapter.pth` path and retain a backup outside the  
 task tree:
 
 ```bash
@@ -397,17 +398,17 @@ python3 adapter/strip_adapter_checkpoints.py \
   --workers 4
 ```
 
-The first command validates every checkpoint without writing. The second
-extracts `ema.shadow`, removes the runtime-only `_delta_ratio` buffer, validates
-all 26 shapes and hashes, writes `adapter_meta.json`, and atomically replaces
+The first command validates every checkpoint without writing. The second  
+extracts `ema.shadow`, removes the runtime-only `_delta_ratio` buffer, validates  
+all 26 shapes and hashes, writes `adapter_meta.json`, and atomically replaces  
 the full checkpoint with the compact state.
 
 ## 4. ParamRealign
 
-Adapter parameter tensors contain hidden-neuron permutation symmetries.
-`adapter/param_realign.py` delegates to the structured `adapter/alignment/`
-package while preserving the existing command. It builds a reference only from
-training tasks, aligns all splits to the frozen reference, and checks
+Adapter parameter tensors contain hidden-neuron permutation symmetries.  
+`adapter/param_realign.py` delegates to the structured `adapter/alignment/`  
+package while preserving the existing command. It builds a reference only from  
+training tasks, aligns all splits to the frozen reference, and checks  
 functional equivalence before optionally saving aligned states.
 
 The task tree is expected to follow this shape:
@@ -425,8 +426,8 @@ Inspect the exact options first:
 python3 adapter/param_realign.py --help
 ```
 
-Then run the paper alignment path, supplying the local task root and an output
-directory. Use `--save-aligned` to write `aligned_adapter.pth` beside each raw
+Then run the paper alignment path, supplying the local task root and an output  
+directory. Use `--save-aligned` to write `aligned_adapter.pth` beside each raw  
 Adapter only after the functional-equivalence checks pass:
 
 ```bash
@@ -440,13 +441,13 @@ python3 adapter/param_realign.py \
   --save-aligned
 ```
 
-This command writes runtime reports and aligned weights; none are bundled in
+This command writes runtime reports and aligned weights; none are bundled in  
 `codes`.
 
 ## 5. Build Gram--Raw diffusion inputs
 
-The diffusion stage expects each task to contain a compact Adapter state and a
-per-task sampled codeword matrix. First create the matched raw-probe and Gram
+The diffusion stage expects each task to contain a compact Adapter state and a  
+per-task sampled codeword matrix. First create the matched raw-probe and Gram  
 condition tensors:
 
 ```bash
@@ -462,12 +463,12 @@ python3 cache/build_gram_raw_probe_condition.py \
   --seed 2026
 ```
 
-Each task receives its own deterministic random sample of 128 distinct rows
-from that encoder's training-codeword matrix. The task-local index file makes
-reruns reproducible; Gram and Raw share the sampled rows within each task.
-Use `--overwrite` to rebuild conditions made by the earlier shared-index procedure.
-After changing support sampling, rebuild the condition tensors for every split
-and retrain contrastive alignment and diffusion; old checkpoints correspond to
+Each task receives its own deterministic random sample of 128 distinct rows  
+from that encoder's training-codeword matrix. The task-local index file makes  
+reruns reproducible; Gram and Raw share the sampled rows within each task.  
+Use `--overwrite` to rebuild conditions made by the earlier shared-index procedure.  
+After changing support sampling, rebuild the condition tensors for every split  
+and retrain contrastive alignment and diffusion; old checkpoints correspond to  
 different inputs.
 
 Next build normalization statistics from training Adapters only:
@@ -480,18 +481,18 @@ python3 cache/build_stats.py \
   --token-size 512
 ```
 
-`build_stats.py` records the 26-tensor manifest, token masks, structure IDs,
-per-parameter normalization statistics, and a fingerprint used by training and
+`build_stats.py` records the 26-tensor manifest, token masks, structure IDs,  
+per-parameter normalization statistics, and a fingerprint used by training and  
 inference validation.
 
 ## 6. Contrastive context alignment
 
-The `diffusion/alignment/` package uses task-level symmetric InfoNCE, positive
-cosine alignment, and position-residual cosine alignment. It trains the codeword-condition
-context generator before diffusion, so condition representations remain tied
+The `diffusion/alignment/` package uses task-level symmetric InfoNCE, positive  
+cosine alignment, and position-residual cosine alignment. It trains the codeword-condition  
+context generator before diffusion, so condition representations remain tied  
 to the matching Adapter parameters.
 
-No YAML configuration is included in this source-only release. Use an existing
+No YAML configuration is included in this source-only release. Use an existing  
 local configuration file and override paths from the command line:
 
 ```bash
@@ -503,24 +504,24 @@ python3 alignment/train.py \
   --override alignment.level=task
 ```
 
-The configuration must explicitly set `alignment.task_temperature`,
-`alignment.task_cosine_weight`, and `alignment.position_residual_weight`.
-Both auxiliary weights must be positive for the paper objective.
-The configuration consumed by this entry point must also define the data fields,
-Adapter token structure, condition encoder, token-context generator, alignment
-model, optimizer, scheduler, and loss weights used by the original code.
-The cross-attention forward path now follows the equation in the paper, so
-previous context-generator and diffusion checkpoints should be retrained.
-The paper shell entry points select a bidirectional Transformer sequence model;
+The configuration must explicitly set `alignment.task_temperature`,  
+`alignment.task_cosine_weight`, and `alignment.position_residual_weight`.  
+Both auxiliary weights must be positive for the paper objective.  
+The configuration consumed by this entry point must also define the data fields,  
+Adapter token structure, condition encoder, token-context generator, alignment  
+model, optimizer, scheduler, and loss weights used by the original code.  
+The cross-attention forward path now follows the equation in the paper, so  
+previous context-generator and diffusion checkpoints should be retrained.  
+The paper shell entry points select a bidirectional Transformer sequence model;  
 the optional Mamba and prefix paths are separate architecture experiments.
 
 ## 7. Diffusion training
 
-`diffusion/main.py` loads an external OmegaConf YAML file. Configuration files
-were excluded by design, but every setting can be overridden with repeated
+`diffusion/main.py` loads an external OmegaConf YAML file. Configuration files  
+were excluded by design, but every setting can be overridden with repeated  
 `--override KEY=VALUE` arguments.
 
-The paper path requires at least these semantic settings in the external
+The paper path requires at least these semantic settings in the external  
 configuration:
 
 - aligned 26-tensor Adapter states and the training-only statistics file;
@@ -544,26 +545,26 @@ python3 main.py \
   --override diffusion.prediction_type=eps
 ```
 
-For distributed training, launch the same entry point through the local
+For distributed training, launch the same entry point through the local  
 PyTorch distributed runner and preserve the same overrides.
 
 Important files:
 
-- `diffusion/data/adapter_tokenizer.py`: compact-state validation,
+- `diffusion/data/adapter_tokenizer.py`: compact-state validation,  
   normalization, tokenization, and differentiable detokenization.
-- `diffusion/models/condition_context.py`: Gram--Raw condition encoding,
+- `diffusion/models/condition_context.py`: Gram--Raw condition encoding,  
   structural embeddings, and token-context generation.
 - `diffusion/models/denoiser.py`: parameter-token denoisers.
-- `diffusion/models/ddpm.py`: forward diffusion, epsilon loss, CFG, DDPM, and
+- `diffusion/models/ddpm.py`: forward diffusion, epsilon loss, CFG, DDPM, and  
   DDIM sampling.
-- `diffusion/core/trainer.py`: optimization, checkpointing, validation, and
+- `diffusion/core/trainer.py`: optimization, checkpointing, validation, and  
   functional reconstruction losses.
-- `diffusion/core/inferencer.py`: conditional sampling, Adapter reconstruction,
+- `diffusion/core/inferencer.py`: conditional sampling, Adapter reconstruction,  
   and target-decoder evaluation.
 
 ## 8. Inference and evaluation
 
-Use the same external diffusion configuration and override the checkpoint,
+Use the same external diffusion configuration and override the checkpoint,  
 condition, and output paths:
 
 ```bash
@@ -591,26 +592,29 @@ python3 main.py \
   --override data.query_codeword_file=test.pt
 ```
 
-The test codewords in each task directory must correspond, in row order, to
-the independent test CSI tensor. The `evaluate_diffusion.sh` wrapper requires
+The test codewords in each task directory must correspond, in row order, to  
+the independent test CSI tensor. The `evaluate_diffusion.sh` wrapper requires  
 `TEST_PATH` and defaults its query codeword filename to `test.pt`.
 
-Sampling supports classifier-free guidance and DDIM through the corresponding
-existing configuration fields under `inference` and `diffusion`. Generated
-parameter tokens are denormalized and reconstructed into the original compact
+Sampling supports classifier-free guidance and DDIM through the corresponding  
+existing configuration fields under `inference` and `diffusion`. Generated  
+parameter tokens are denormalized and reconstructed into the original compact  
 Adapter state dictionary before functional evaluation.
 
 ## Reproducibility and safety notes
 
-- Fit affine alignment, ParamRealign references, and parameter statistics on
+- Fit affine alignment, ParamRealign references, and parameter statistics on  
   training tasks only.
-- Keep CSI dimensions, compression ratio, encoder name, decoder name, and
+- Keep CSI dimensions, compression ratio, encoder name, decoder name, and  
   checkpoint architecture consistent across all stages.
-- Sample support indices independently for every task while preserving its
+- Sample support indices independently for every task while preserving its  
   within-task Raw/Gram row correspondence.
-- Do not place datasets, checkpoints, generated Adapters, logs, TensorBoard
+- Do not place datasets, checkpoints, generated Adapters, logs, TensorBoard  
   events, or local configuration files inside this source package.
-- Run `python3 -m compileall -q codes` from the project root after source
-  changes to verify Python syntax.
-- Run `python3 -m unittest discover -s codes/tests -v` for the paper-method
-  regression checks (requires PyTorch and OmegaConf).
+- Verify Python syntax after source changes from the project root:
+
+  ```bash
+  python3 -m compileall -q base adapter diffusion
+  ```
+- This source release does not currently include an automated regression test  
+  suite, so no `unittest` discovery command is provided.
