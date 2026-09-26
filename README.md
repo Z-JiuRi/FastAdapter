@@ -600,21 +600,3 @@ Sampling supports classifier-free guidance and DDIM through the corresponding
 existing configuration fields under `inference` and `diffusion`. Generated  
 parameter tokens are denormalized and reconstructed into the original compact  
 Adapter state dictionary before functional evaluation.
-
-## Reproducibility and safety notes
-
-- Fit affine alignment, ParamRealign references, and parameter statistics on  
-  training tasks only.
-- Keep CSI dimensions, compression ratio, encoder name, decoder name, and  
-  checkpoint architecture consistent across all stages.
-- Sample support indices independently for every task while preserving its  
-  within-task Raw/Gram row correspondence.
-- Do not place datasets, checkpoints, generated Adapters, logs, TensorBoard  
-  events, or local configuration files inside this source package.
-- Verify Python syntax after source changes from the project root:
-
-  ```bash
-  python3 -m compileall -q base adapter diffusion
-  ```
-- This source release does not currently include an automated regression test  
-  suite, so no `unittest` discovery command is provided.
